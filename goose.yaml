@@ -1,0 +1,3 @@
+driver: postgres
+open: user=postgres password=millennium dbname=millennium sslmode=disable
+dir: ./db/migrations/products

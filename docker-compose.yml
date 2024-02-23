@@ -1,0 +1,9 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "millennium"
+      POSTGRES_DB: "millennium"
+    ports:
+      - "5432:5432"
