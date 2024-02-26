@@ -7,6 +7,7 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/lib/pq"
 )
@@ -51,6 +52,42 @@ SELECT id, name, price, gross_margin, iva FROM Product
 // queries/product.sql
 func (q *Queries) GetAllProducts(ctx context.Context) ([]Product, error) {
 	rows, err := q.db.QueryContext(ctx, getAllProducts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Price,
+			&i.GrossMargin,
+			&i.Iva,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getFilteredProducts = `-- name: GetFilteredProducts :many
+SELECT id, name, price, gross_margin, iva
+    FROM Product
+    WHERE to_char(id, '9999999') LIKE '%' || $1 || '%'
+        OR name ILIKE '%' || $1 || '%'
+`
+
+func (q *Queries) GetFilteredProducts(ctx context.Context, dollar_1 sql.NullString) ([]Product, error) {
+	rows, err := q.db.QueryContext(ctx, getFilteredProducts, dollar_1)
 	if err != nil {
 		return nil, err
 	}

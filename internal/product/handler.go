@@ -2,6 +2,7 @@
 package product
 
 import (
+	"database/sql"
 	"fmt"
 	database "millennium/db"
 	"millennium/db/sqlc"
@@ -11,10 +12,21 @@ import (
 )
 
 func GetProductsHandler(c *fiber.Ctx) error {
-	products, err := database.Queries.GetAllProducts(c.Context())
+	searchParam := c.Query("search")
+	nullSearchParam := sql.NullString{String: searchParam, Valid: len(searchParam) > 0}
+	fmt.Println("Search Parameter:", searchParam)
+
+	var products []sqlc.Product
+	var err error
+	if nullSearchParam.Valid {
+		products, err = database.Queries.GetFilteredProducts(c.Context(), nullSearchParam)
+	} else {
+		products, err = database.Queries.GetAllProducts(c.Context())
+	}
 	if err != nil {
 		return err
 	}
+	fmt.Println(products)
 	if products == nil {
 		products = []sqlc.Product{}
 	}

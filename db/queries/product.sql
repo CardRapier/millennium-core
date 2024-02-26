@@ -3,6 +3,11 @@
 -- name: GetAllProducts :many
 SELECT * FROM Product;
 
+-- name: GetFilteredProducts :many
+SELECT *
+    FROM Product
+    WHERE to_char(id, '9999999') LIKE '%' || $1 || '%'
+        OR name ILIKE '%' || $1 || '%';
 -- name: GetProductByID :one
 SELECT * FROM Product WHERE id = $1;
 
