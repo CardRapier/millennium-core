@@ -13,24 +13,28 @@ import (
 
 func GetProductsHandler(c *fiber.Ctx) error {
 	searchParam := c.Query("search")
+	var err error
 	nullSearchParam := sql.NullString{String: searchParam, Valid: len(searchParam) > 0}
 	fmt.Println("Search Parameter:", searchParam)
-
 	var products []sqlc.Product
-	var err error
 	if nullSearchParam.Valid {
 		products, err = database.Queries.GetFilteredProducts(c.Context(), nullSearchParam)
 	} else {
 		products, err = database.Queries.GetAllProducts(c.Context())
 	}
 	if err != nil {
-		return err
+		fmt.Println(err)
+		return c.Status(fiber.StatusInternalServerError).SendString("Error getting products")
 	}
 	fmt.Println(products)
 	if products == nil {
 		products = []sqlc.Product{}
 	}
-	return c.JSON(products)
+	response := fiber.Map{
+		"products": products,
+	}
+
+	return c.JSON(response)
 }
 
 func CreateProductsHandler(c *fiber.Ctx) error {
@@ -41,20 +45,20 @@ func CreateProductsHandler(c *fiber.Ctx) error {
 	}
 	id, err := database.Queries.AddProduct(c.Context(), createProduct)
 	if err != nil {
-		return c.JSON(fiber.Map{"message": "Error creating the product"});
+		return c.JSON(fiber.Map{"message": "Error creating the product"})
 	}
 	return c.JSON(fiber.Map{"message": fmt.Sprintf("Product added successfully: %d", id)})
 }
 
-//TODO: Implement this with sqlc
+// TODO: Implement this with sqlc
 func UpdateProductsHandler(c *fiber.Ctx) error {
 	var updateProduct sqlc.UpdateProductParams
 	if err := c.BodyParser(&updateProduct); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
 	}
-	err := database.Queries.UpdateProduct(c.Context(),updateProduct)
+	err := database.Queries.UpdateProduct(c.Context(), updateProduct)
 	if err != nil {
-		return c.JSON(fiber.Map{"message": "Error creating the product"});
+		return c.JSON(fiber.Map{"message": "Error creating the product"})
 	}
 	return c.JSON(fiber.Map{"message": "Product updated successfully"})
 }

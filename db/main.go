@@ -10,7 +10,7 @@ var Queries *sqlc.Queries
 var DB *sql.DB
 
 func StartDatabase() {
-	dsn := "user=postgres password=millennium dbname=millennium sslmode=disable"
+	dsn := "user=postgres.udzmxmtslcuqgqifbnnn password=4cAqPzOpxdhavnIj host=aws-0-us-east-1.pooler.supabase.com port=5432 dbname=postgres"
 
 	// Open a database connection
 	DB, err := sql.Open("postgres", dsn)
