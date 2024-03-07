@@ -21,6 +21,7 @@ func InitializeServer() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 
+	product.InitHandler()
 	// Define API endpoints and handlers
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Welcome to the POS system!")

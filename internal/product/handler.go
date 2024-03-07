@@ -6,16 +6,27 @@ import (
 	"fmt"
 	database "millennium/db"
 	"millennium/db/sqlc"
+	Logger "millennium/pkg/logger"
 
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/lib/pq"
 )
 
+type GetProductsResponse struct {
+	Products []sqlc.Product `json:"products"`
+}
+
+var logger = Logger.Logger{}
+
+func InitHandler() {
+    logger.Init("Product Handler")
+    logger.Info.Println("started")
+}
+
 func GetProductsHandler(c *fiber.Ctx) error {
 	searchParam := c.Query("search")
 	var err error
 	nullSearchParam := sql.NullString{String: searchParam, Valid: len(searchParam) > 0}
-	fmt.Println("Search Parameter:", searchParam)
 	var products []sqlc.Product
 	if nullSearchParam.Valid {
 		products, err = database.Queries.GetFilteredProducts(c.Context(), nullSearchParam)
@@ -23,17 +34,16 @@ func GetProductsHandler(c *fiber.Ctx) error {
 		products, err = database.Queries.GetAllProducts(c.Context())
 	}
 	if err != nil {
-		fmt.Println(err)
+		logger.Error.Println("Error getting products for search: ", searchParam, " - Error: ", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Error getting products")
 	}
-	fmt.Println(products)
 	if products == nil {
 		products = []sqlc.Product{}
 	}
-	response := fiber.Map{
-		"products": products,
+	response := GetProductsResponse{
+		Products: products,
 	}
-
+	logger.Info.Println(fmt.Sprint("Responded ", len(products), " Products answers for query: '", searchParam, "'" ))
 	return c.JSON(response)
 }
 
