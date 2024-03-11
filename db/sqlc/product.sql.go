@@ -13,10 +13,11 @@ import (
 )
 
 const addProduct = `-- name: AddProduct :one
-INSERT INTO Product (name, price, iva, gross_margin) VALUES ($1, $2, $3, $4) RETURNING id
+INSERT INTO Product (utc, name, price, iva, gross_margin) VALUES ($1, $2, $3, $4, $5) RETURNING id
 `
 
 type AddProductParams struct {
+	Utc         string `json:"utc"`
 	Name        string `json:"name"`
 	Price       int32  `json:"price"`
 	Iva         int32  `json:"iva"`
@@ -25,6 +26,7 @@ type AddProductParams struct {
 
 func (q *Queries) AddProduct(ctx context.Context, arg AddProductParams) (int32, error) {
 	row := q.db.QueryRowContext(ctx, addProduct,
+		arg.Utc,
 		arg.Name,
 		arg.Price,
 		arg.Iva,
@@ -46,7 +48,7 @@ func (q *Queries) DeleteProduct(ctx context.Context, id int32) error {
 
 const getAllProducts = `-- name: GetAllProducts :many
 
-SELECT id, name, price, gross_margin, iva FROM Product
+SELECT id, utc, name, price, gross_margin, iva FROM Product
 `
 
 // queries/product.sql
@@ -61,6 +63,7 @@ func (q *Queries) GetAllProducts(ctx context.Context) ([]Product, error) {
 		var i Product
 		if err := rows.Scan(
 			&i.ID,
+			&i.Utc,
 			&i.Name,
 			&i.Price,
 			&i.GrossMargin,
@@ -80,7 +83,7 @@ func (q *Queries) GetAllProducts(ctx context.Context) ([]Product, error) {
 }
 
 const getFilteredProducts = `-- name: GetFilteredProducts :many
-SELECT id, name, price, gross_margin, iva
+SELECT id, utc, name, price, gross_margin, iva
     FROM Product
     WHERE to_char(id, '9999999') LIKE '%' || $1 || '%'
         OR name ILIKE '%' || $1 || '%'
@@ -97,6 +100,7 @@ func (q *Queries) GetFilteredProducts(ctx context.Context, dollar_1 sql.NullStri
 		var i Product
 		if err := rows.Scan(
 			&i.ID,
+			&i.Utc,
 			&i.Name,
 			&i.Price,
 			&i.GrossMargin,
@@ -116,7 +120,7 @@ func (q *Queries) GetFilteredProducts(ctx context.Context, dollar_1 sql.NullStri
 }
 
 const getProductByID = `-- name: GetProductByID :one
-SELECT id, name, price, gross_margin, iva FROM Product WHERE id = $1
+SELECT id, utc, name, price, gross_margin, iva FROM Product WHERE id = $1
 `
 
 func (q *Queries) GetProductByID(ctx context.Context, id int32) (Product, error) {
@@ -124,6 +128,7 @@ func (q *Queries) GetProductByID(ctx context.Context, id int32) (Product, error)
 	var i Product
 	err := row.Scan(
 		&i.ID,
+		&i.Utc,
 		&i.Name,
 		&i.Price,
 		&i.GrossMargin,
@@ -133,7 +138,7 @@ func (q *Queries) GetProductByID(ctx context.Context, id int32) (Product, error)
 }
 
 const getProductsByID = `-- name: GetProductsByID :many
-SELECT id, name, price, gross_margin, iva FROM Product WHERE id = ANY($1::int[])
+SELECT id, utc, name, price, gross_margin, iva FROM Product WHERE id = ANY($1::int[])
 `
 
 func (q *Queries) GetProductsByID(ctx context.Context, dollar_1 []int32) ([]Product, error) {
@@ -147,6 +152,7 @@ func (q *Queries) GetProductsByID(ctx context.Context, dollar_1 []int32) ([]Prod
 		var i Product
 		if err := rows.Scan(
 			&i.ID,
+			&i.Utc,
 			&i.Name,
 			&i.Price,
 			&i.GrossMargin,
@@ -166,10 +172,11 @@ func (q *Queries) GetProductsByID(ctx context.Context, dollar_1 []int32) ([]Prod
 }
 
 const updateProduct = `-- name: UpdateProduct :exec
-UPDATE Product SET name = $1, price = $2, iva = $3, gross_margin = $4 WHERE id = $5 RETURNING id, name, price, gross_margin, iva
+UPDATE Product SET utc = $1, name = $2, price = $3, iva = $4, gross_margin = $5 WHERE id = $6 RETURNING id, utc, name, price, gross_margin, iva
 `
 
 type UpdateProductParams struct {
+	Utc         string `json:"utc"`
 	Name        string `json:"name"`
 	Price       int32  `json:"price"`
 	Iva         int32  `json:"iva"`
@@ -179,6 +186,7 @@ type UpdateProductParams struct {
 
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) error {
 	_, err := q.db.ExecContext(ctx, updateProduct,
+		arg.Utc,
 		arg.Name,
 		arg.Price,
 		arg.Iva,

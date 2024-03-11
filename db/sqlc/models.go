@@ -22,6 +22,7 @@ type PaymentType struct {
 
 type Product struct {
 	ID          int32  `json:"id"`
+	Utc         string `json:"utc"`
 	Name        string `json:"name"`
 	Price       int32  `json:"price"`
 	GrossMargin int32  `json:"gross_margin"`

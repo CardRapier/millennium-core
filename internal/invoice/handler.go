@@ -12,10 +12,10 @@ import (
 )
 
 type CreateSaleDTO struct {
-	Products    []Product `json:"products"`
+	Products    map[int]Product `json:"products"`
 	Date        int64 `json:"date"`
-	PaymentType int32     `json:"payment_type"`
-	UserID      int32     `json:"user_id"`
+	// PaymentType int32     `json:"payment_type"`
+	// UserID      int32     `json:"user_id"`
 }
 
 type Product struct {
@@ -60,8 +60,8 @@ func CreateSalesHandler(c *fiber.Ctx) error {
 
 	invoice := sqlc.AddInvoiceParams{
 		Date:          createSale.Date,
-		PaymentTypeID: createSale.PaymentType, // Replace with the actual payment type ID
-		// UserID:       1, // Replace with the actual user ID
+		PaymentTypeID: 1,
+		// UserID:
 	}
 
 	invoiceId, err := database.Queries.AddInvoice(c.Context(), invoice)
@@ -70,7 +70,6 @@ func CreateSalesHandler(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"message": "Error creating the invoice"})
 	}
 
-	// sales := []Sales{}
 	var total sql.NullInt32
 	total.Int32 = 0
 	for _, product := range products {
@@ -86,7 +85,7 @@ func CreateSalesHandler(c *fiber.Ctx) error {
 
 		total.Int32 += subtotal
 		total.Valid = true
-		// Insert the sale into the database
+
 		_, err := database.Queries.AddSales(c.Context(), sale)
 		if err != nil {
 			log.Fatal(err)
@@ -97,7 +96,7 @@ func CreateSalesHandler(c *fiber.Ctx) error {
 		ID: invoiceId,
 		Total: total,
 	}
-	// Insert the sale into the database
+
 	database.Queries.UpdateInvoice(c.Context(), updateInvoice)
 
 	return c.JSON(fiber.Map{"message": fmt.Sprintf("Invoice added successfully: %d", invoiceId)})
