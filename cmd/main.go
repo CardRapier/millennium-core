@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"millennium/internal/services/products"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,4 +20,10 @@ func main() {
 	v1 := api.Group("/v1")
 
 	productsHttpHandler.RegisterRoutes(v1)
+
+	log.Println("Server listening on 3000")
+	err := app.Listen(":3000")
+	if(err != nil){
+		log.Fatal("Could init Server", err)
+	}
 }
