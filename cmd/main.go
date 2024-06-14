@@ -11,7 +11,9 @@ func main() {
 	app := fiber.New()
 	app.Use(logger.New())
 
-	productsHttpHandler := products.NewProductsHttpHandler()
+	productsStore := products.NewProductsStore()
+	productsService := products.NewProductsService(productsStore)
+	productsHttpHandler := products.NewProductsHttpHandler(productsService)
 
 	api := app.Group("/api")
 	v1 := api.Group("/v1")

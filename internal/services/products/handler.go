@@ -2,10 +2,12 @@ package products
 
 import "github.com/gofiber/fiber/v2"
 
-type ProductsHttpHandler struct {}
+type ProductsHttpHandler struct {
+	productsService *ProductsService
+}
 
-func NewProductsHttpHandler() *ProductsHttpHandler {
-	return &ProductsHttpHandler{}
+func NewProductsHttpHandler(productsService *ProductsService) *ProductsHttpHandler {
+	return &ProductsHttpHandler{productsService}
 }
 
 func (p *ProductsHttpHandler) RegisterRoutes(router fiber.Router) {

@@ -1,8 +1,10 @@
 package products
 
 
-type ProductsService struct {}
+type ProductsService struct {
+	productsStore *ProductsStore
+}
 
-func NewProductsService() *ProductsService {
-	return &ProductsService{}
+func NewProductsService(productsStore *ProductsStore) *ProductsService {
+	return &ProductsService{productsStore}
 }
